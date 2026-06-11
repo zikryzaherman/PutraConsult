@@ -1,83 +1,114 @@
-# PutraConsult Prototype 🎓💼
+# PutraConsult 🎓💼
 
-A centralized consultation booking platform for UPM students and lecturers to schedule and manage academic appointments efficiently.
+> A centralized consultation booking platform for UPM students and lecturers to schedule and manage academic appointments efficiently.
 
-## 🗂️ Project Structure
+---
+
+## 📁 Project Structure
+
+```
 PutraConsult/
-├── public/              # Static assets (logos, icons)
+├── public/               # Static assets (logos, icons)
 ├── src/
-│   ├── assets/          # Component images & styling assets
-│   ├── firebase.js      # Global Firebase configuration & initializations
-│   ├── App.jsx          # Main application router/layout
-│   ├── main.jsx         # App entry point
-│   └── index.css        # Global Tailwind/CSS styles
-├── package.json         # Project dependencies (React, Vite, Firebase)
-└── README.md            # Team documentation
+│   ├── assets/           # Component images & styling assets
+│   ├── firebase.js       # Global Firebase configuration & initialization
+│   ├── App.jsx           # Main application router & layout
+│   ├── main.jsx          # App entry point
+│   └── index.css         # Global Tailwind/CSS styles
+├── package.json          # Project dependencies (React, Vite, Firebase)
+└── README.md             # Team documentation
+```
+
 ---
 
 ## ⚙️ Prerequisites
 
-Before running the project, make sure you have installed:
-- [Node.js](https://nodejs.org/) (Version >= 18)
-- Git installed on your local machine
+Make sure you have the following installed before running the project:
+
+- [Node.js](https://nodejs.org/) v18 or higher
+- [Git](https://git-scm.com/)
 
 ---
 
 ## 🚀 Local Setup Guide
 
-Follow these steps to get the development environment running on your machine:
-
 ### 1. Clone the Repository
-Open your terminal, navigate to your workspace folder, and run:
+
 ```bash
-git clone [https://github.com/zikryzaherman/PutraConsult.git](https://github.com/zikryzaherman/PutraConsult.git)
+git clone https://github.com/zikryzaherman/PutraConsult.git
 cd PutraConsult
-2. Install Dependencies
-Install all required project packages (including React, Vite, and Firebase SDK) by running:
+```
 
-Bash
+### 2. Install Dependencies
+
+```bash
 npm install
-3. Run the Development Server
-Start your local testing server using:
+```
 
-Bash
+### 3. Start the Development Server
+
+```bash
 npm run dev
-Once active, open your browser and go to: http://localhost:5173
+```
 
-🌿 Git Branch & Workflow Strategy
-To match standard software engineering practices, the main branch is protected and cannot be pushed to directly.
+Then open your browser at: **http://localhost:5173**
 
-Branch Naming Convention
-When working on a assigned task, always branch out from the latest main using this format:
+---
 
-feature/feature-name (e.g., feature/login-page, feature/booking-form)
+## 🌿 Git Branch & Workflow Strategy
 
-fix/bug-name (e.g., fix/navbar-spacing)
+The `main` branch is protected — never push directly to it. Always branch out and submit a Pull Request.
 
-Step-by-Step Developer Workflow
-Sync your local repository with cloud main:
+### Branch Naming Convention
 
-Bash
+| Type | Format | Example |
+|------|--------|---------|
+| New feature | `feature/feature-name` | `feature/login-page` |
+| Bug fix | `fix/bug-name` | `fix/navbar-spacing` |
+
+### Step-by-Step Developer Workflow
+
+**1. Sync with the latest `main`**
+```bash
 git checkout main
 git pull origin main
-Create your feature branch:
+```
 
-Bash
+**2. Create your feature branch**
+```bash
 git checkout -b feature/your-task-name
-Code your feature and save changes:
+```
 
-Bash
+**3. Commit your changes**
+```bash
 git add .
 git commit -m "feat: short description of what you built"
-Push your branch to GitHub:
+```
 
-Bash
+**4. Push to GitHub**
+```bash
 git push origin feature/your-task-name
-Open a Pull Request (PR): Go to the GitHub repository web page, open a new PR from your branch to main, and notify the PM for code review and merging.
+```
 
-🔐 Firebase Configurations
-The core cloud database connection is handled globally inside src/firebase.js.
+**5. Open a Pull Request**
 
-Database (Firestore): Currently running in Test Mode for prototype development.
+Go to the repository on GitHub, open a new PR from your branch to `main`, and notify the **PM** for code review and merging.
 
-Authentication: Email/Password provider is enabled for student/lecturer credentials.
+---
+
+## 🔐 Firebase Configuration
+
+Firebase is configured globally in `src/firebase.js`.
+
+| Service | Status |
+|---------|--------|
+| Firestore (Database) | ✅ Test Mode (prototype) |
+| Authentication | ✅ Email/Password enabled |
+
+> ⚠️ Firestore is currently running in **Test Mode** for prototype development. Update security rules before production deployment.
+
+---
+
+## 👥 Team
+
+Built by the PutraConsult team as part of the Component-Based Software Engineering project at **Universiti Putra Malaysia (UPM)**.
