@@ -1,0 +1,1 @@
+// Sidebar component for the application [cite: 34]
