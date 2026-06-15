@@ -7,6 +7,8 @@ import FindLecturer from "./pages/student/FindLecturer";
 import ViewBookingStatus from "./pages/student/ViewBookingStatus";
 import ManageAvailability from "./pages/lecturer/ManageAvailability";
 import ManageRequests from "./pages/lecturer/ManageRequests";
+import Home from "./pages/Home";
+import Notifications from "./pages/shared/Notifications";
 
 function ProtectedRoute({ children, allowedRole }) {
   const { currentUser, profile } = useAuth();

@@ -3,108 +3,89 @@ import { useAuth } from "../../context/AuthContext";
 import DashboardLayout from "../../layouts/DashboardLayout";
 
 export default function ManageAvailability() {
-  const { availability, profile, addSlot, deleteSlot, updateSlotTime } = useAuth();
-  const [date, setDate] = useState("");
-  const [selectedPreset, setSelectedPreset] = useState("08:00 AM - 09:00 AM");
-  const [customTime, setCustomTime] = useState("");
-  const [isCustomMode, setIsCustomMode] = useState(false);
+  const { availability, addAvailabilitySlot, deleteAvailabilitySlot } = useAuth();
   
-  const [editingSlotId, setEditingSlotId] = useState(null);
-  const [editingTimeText, setEditingTimeText] = useState("");
+  // Custom states for date and time editing inputs
+  const [targetDate, setTargetDate] = useState("");
+  const [targetTime, setTargetTime] = useState("");
+  const [notice, setNotice] = useState("");
 
-  const mySlots = availability.filter(s => s.lecturerId === profile?.uid);
-
-  const presets = [
-    "08:00 AM - 09:00 AM", "09:00 AM - 10:00 AM", "10:00 AM - 11:00 AM",
-    "11:00 AM - 12:00 PM", "12:00 PM - 01:00 PM", "02:00 PM - 03:00 PM",
-    "03:00 PM - 04:00 PM", "04:00 PM - 05:00 PM"
-  ];
-
-  const handleBroadcast = async (e) => {
+  const handlePublish = async (e) => {
     e.preventDefault();
-    if (!date) return;
-    const finalTime = isCustomMode ? customTime : selectedPreset;
-    if (!finalTime.trim()) return;
-    await addSlot(date, finalTime);
-    setCustomTime("");
-  };
+    if (!targetDate || !targetTime) return;
 
-  const handleSaveEdit = async (id) => {
-    if (!editingTimeText.trim()) return;
-    await updateSlotTime(id, editingTimeText);
-    setEditingSlotId(null);
+    // Convert raw time inputs to a natural 12-hour display string format
+    const timePieces = targetTime.split(":");
+    let hours = parseInt(timePieces[0]);
+    const minutes = timePieces[1];
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12;
+    const cleanTimeStr = `${hours}:${minutes} ${ampm}`;
+
+    await addAvailabilitySlot({ date: targetDate, time: cleanTimeStr });
+    setNotice("Consultation availability hour slot published successfully!");
+    setTargetDate("");
+    setTargetTime("");
   };
 
   return (
     <DashboardLayout>
-      <div className="text-zinc-500 font-mono text-xs uppercase tracking-widest mb-6">Putra Consult › Manage Availability</div>
-
-      <div className="grid md:grid-cols-3 gap-8">
-        {/* ADD TIME SLOT CONTROL CARD */}
-        <div className="bg-white border border-zinc-300 p-5 rounded shadow-xs h-fit">
-          <div className="font-mono text-xs font-black tracking-wider text-zinc-900 border-b pb-2 mb-4 uppercase">Add time slot</div>
-          <form onSubmit={handleBroadcast} className="space-y-4 font-mono text-xs">
-            <div>
-              <label className="block text-zinc-500 font-bold mb-1 uppercase">Date:</label>
-              <input type="date" className="w-full p-2 border bg-zinc-50 rounded" value={date} onChange={e => setDate(e.target.value)} required />
-            </div>
-            
-            <div>
-              <div className="flex justify-between items-center mb-1">
-                <label className="text-zinc-500 font-bold uppercase">Time Slot Configuration:</label>
-                <button type="button" onClick={() => setIsCustomMode(!isCustomMode)} className="text-[10px] text-blue-700 underline font-bold uppercase">
-                  {isCustomMode ? "Use Hour Presets" : "Custom Customization"}
-                </button>
-              </div>
-
-              {isCustomMode ? (
-                <input type="text" placeholder="e.g. 10:30 AM - 11:15 AM" className="w-full p-2 border bg-zinc-50 rounded" value={customTime} onChange={e => setCustomTime(e.target.value)} required />
-              ) : (
-                <select className="w-full p-2 border bg-zinc-50 rounded bg-white" value={selectedPreset} onChange={e => setSelectedPreset(e.target.value)}>
-                  {presets.map(p => <option key={p} value={p}>{p}</option>)}
-                </select>
-              )}
-            </div>
-
-            <button type="submit" className="w-full bg-zinc-900 text-white font-black py-2.5 rounded tracking-widest uppercase hover:bg-black transition">Add</button>
-          </form>
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8 text-left">
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Consultation Scheduler</h1>
+          <p className="text-xs text-slate-400 font-medium mt-1">Configure your open consultation windows for student self-booking.</p>
         </div>
 
-        {/* TIME SLOTS LIST VIEW DISPLAY */}
-        <div className="md:col-span-2 space-y-4">
-          <div className="font-mono text-xs font-black tracking-widest text-zinc-400 uppercase">List of Available Consultation Time:</div>
-          
-          {mySlots.length === 0 ? (
-            <div className="bg-zinc-50 border border-dashed border-zinc-300 p-8 text-center font-mono text-xs text-zinc-400 rounded">
-              No hourly consultation periods broadcasted to dashboard yet. Click "+ Add time slot" on the side control panel.
-            </div>
-          ) : (
-            <div className="grid sm:grid-cols-2 gap-3">
-              {mySlots.map(slot => (
-                <div key={slot.id} className="bg-white border border-zinc-300 p-4 rounded shadow-xs flex flex-col justify-between space-y-3">
-                  <div className="font-mono text-xs">
-                    <p className="font-bold text-zinc-900">📅 {slot.date}</p>
-                    {editingSlotId === slot.id ? (
-                      <div className="mt-2 flex items-center space-x-1">
-                        <input type="text" className="p-1 border text-xs bg-zinc-50 font-mono w-full rounded" value={editingTimeText} onChange={e => setEditingTimeText(e.target.value)} />
-                        <button onClick={() => handleSaveEdit(slot.id)} className="bg-zinc-800 text-white text-[10px] px-2 py-1 rounded font-bold uppercase">Save</button>
-                        <button onClick={() => setEditingSlotId(null)} className="text-zinc-400 text-[10px] px-1 font-bold">✕</button>
-                      </div>
-                    ) : (
-                      <p className="text-zinc-500 font-bold mt-1">⏰ TIME SLOT: {slot.time}</p>
-                    )}
-                  </div>
+        {notice && (
+          <div className="bg-emerald-50 border border-emerald-100 text-emerald-800 text-xs font-bold p-4 rounded-xl mb-6 flex justify-between items-center">
+            <span>🎉 {notice}</span>
+            <button onClick={() => setNotice("")} className="text-emerald-400 hover:text-emerald-600 text-sm cursor-pointer">✕</button>
+          </div>
+        )}
 
-                  <div className="flex justify-end items-center space-x-3 border-t pt-2 border-zinc-100">
-                    {editingSlotId !== slot.id && (
-                      <button onClick={() => { setEditingSlotId(slot.id); setEditingTimeText(slot.time); }} className="text-zinc-500 hover:text-black font-mono text-[10px] font-bold uppercase">✏️ Edit slot</button>
-                    )}
-                    <button onClick={() => deleteSlot(slot.id)} className="text-red-700 hover:underline font-mono text-[10px] font-bold uppercase">🗑️ Remove</button>
+        <div className="grid md:grid-cols-3 gap-8">
+          {/* CONTROL BOX PANEL */}
+          <div className="bg-white border border-slate-100 p-6 rounded-2xl shadow-xs text-left">
+            <h3 className="text-xs font-mono font-black tracking-wider text-slate-400 uppercase mb-4">Open New Window</h3>
+            <form onSubmit={handlePublish} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Select Date</label>
+                <input type="date" className="w-full p-2.5 border border-slate-200 rounded-xl text-xs text-slate-800 bg-slate-50 cursor-pointer focus:bg-white outline-none" value={targetDate} onChange={e => setTargetDate(e.target.value)} required />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Select Start Time</label>
+                <input type="time" className="w-full p-2.5 border border-slate-200 rounded-xl text-xs text-slate-800 bg-slate-50 cursor-pointer focus:bg-white outline-none" value={targetTime} onChange={e => setTargetTime(e.target.value)} required />
+              </div>
+              <button type="submit" className="w-full bg-red-800 hover:bg-red-900 text-white font-bold py-2.5 rounded-xl text-xs tracking-wide shadow-md shadow-red-800/10 cursor-pointer">
+                PUBLISH LIVE SLOT
+              </button>
+            </form>
+          </div>
+
+          {/* OPEN ACTIVE LIST SLOTS */}
+          <div className="md:col-span-2 bg-white border border-slate-100 p-6 rounded-2xl shadow-xs text-left">
+            <h3 className="text-xs font-mono font-black tracking-wider text-slate-400 uppercase mb-4">Your Published Openings</h3>
+            <div className="space-y-2 max-h-[340px] overflow-y-auto pr-1">
+              {availability.length === 0 ? (
+                <p className="text-xs text-slate-400 italic text-center py-12">No active consultation windows published yet.</p>
+              ) : (
+                availability.map((slot) => (
+                  <div key={slot.id} className="border border-slate-100 bg-slate-50/50 rounded-xl p-4 flex justify-between items-center hover:border-slate-200 transition-all">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-xl">⏰</span>
+                      <div>
+                        <p className="text-xs font-extrabold text-slate-800">{slot.time}</p>
+                        <p className="text-[10px] font-mono text-slate-400 mt-0.5">{slot.date}</p>
+                      </div>
+                    </div>
+                    <button onClick={() => deleteAvailabilitySlot(slot.id)} className="text-xs font-bold text-slate-400 hover:text-red-700 bg-white border border-slate-200/60 hover:border-red-100 p-1.5 px-3 rounded-lg cursor-pointer shadow-xs transition-colors">
+                      REMOVE
+                    </button>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </DashboardLayout>
