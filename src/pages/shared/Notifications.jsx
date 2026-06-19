@@ -150,11 +150,15 @@ export default function DashboardLayout({ children }) {
       <div className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isNotifOpen ? "translate-x-0" : "translate-x-full"}`}>
         
         {/* Drawer Header */}
+        {/* Drawer Header */}
         <div className="p-6 border-b border-slate-100 flex items-start justify-between bg-white">
           <div className="flex gap-3 items-center">
-            <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+            {/* --- REPLACED SVG WITH EMOJI --- */}
+            <span className="text-2xl">🎓</span>
+            
             <div>
               <h2 className="font-bold text-slate-900 text-lg leading-tight">Notifications</h2>
+// ...
               <p className="text-sm text-slate-500">{profile?.name}</p>
             </div>
           </div>

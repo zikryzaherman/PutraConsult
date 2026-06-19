@@ -75,17 +75,27 @@ export function AuthProvider({ children }) {
     }
   }, [bookings, profile]);
 
-  const register = async (email, password, name, role, idCode) => {
-    try {
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      const newUserData = { uid: cred.user.uid, email, name, role, idCode, createdAt: new Date().toISOString() };
-      await setDoc(doc(db, "users", cred.user.uid), newUserData);
-      setProfile(newUserData);
-      return { error: null };
-    } catch (err) {
-      return { error: err.message };
-    }
-  };
+  // Add 'department' to the parameters here
+const register = async (email, password, name, role, idCode, department) => {
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    // Include department in the object saved to Firestore
+    const newUserData = { 
+      uid: cred.user.uid, 
+      email, 
+      name, 
+      role, 
+      idCode, 
+      department: department || "Faculty Department", // Defaults to this if empty
+      createdAt: new Date().toISOString() 
+    };
+    await setDoc(doc(db, "users", cred.user.uid), newUserData);
+    setProfile(newUserData);
+    return { error: null };
+  } catch (err) {
+    return { error: err.message };
+  }
+};
 
   const login = async (email, password) => {
     try {
