@@ -11,6 +11,7 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("student");
   const [idCode, setIdCode] = useState("");
+  const [department, setDepartment] = useState("Software Engineering"); // New Department State
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -39,11 +40,11 @@ export default function Register() {
 
     setLoading(true);
     try {
-      const res = await register(email, password, name, role, idCode);
+      // Pass the new department state to your AuthContext register function
+      const res = await register(email, password, name, role, idCode, department);
       if (res.error) {
         setError(res.error);
       } else {
-        // Successful registration, Firebase auth state listener handles routing
         navigate("/");
       }
     } catch (err) {
@@ -123,7 +124,7 @@ export default function Register() {
                 value={role} 
                 onChange={(e) => {
                   setRole(e.target.value);
-                  setIdCode(""); // Clear ID when switching roles
+                  setIdCode(""); 
                 }}
               >
                 <option value="student">Student</option>
@@ -143,6 +144,23 @@ export default function Register() {
                 onChange={(e) => setIdCode(e.target.value)}
               />
             </div>
+          </div>
+
+          {/* Department Selection */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Department
+            </label>
+            <select
+              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 focus:outline-none focus:border-red-900 focus:ring-1 focus:ring-red-900 transition-all cursor-pointer"
+              value={department}
+              onChange={(e) => setDepartment(e.target.value)}
+            >
+              <option value="Software Engineering">Software Engineering</option>
+              <option value="Network">Network</option>
+              <option value="Multimedia">Multimedia</option>
+              <option value="Computer Science">Computer Science</option>
+            </select>
           </div>
 
           {/* Password Input */}

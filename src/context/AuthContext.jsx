@@ -66,26 +66,39 @@ export function AuthProvider({ children }) {
       })));
     } else if (profile.role === "student") {
       const reviewed = bookings.filter(b => b.studentId === profile.uid);
-      setNotifications(reviewed.map(b => ({
-        id: b.id,
-        type: "status",
-        title: b.status === "approved" ? "REMINDER APPOINTMENT" : "YOUR REQUEST UPDATED",
-        message: `Your appointment request with ${b.lecturerName} for ${b.date} at ${b.time} is ${b.status.toUpperCase()}.`
-      })));
+      // Inside your useEffect for notifications...
+  setNotifications(reviewed.map(b => ({
+    id: b.id,
+    type: "status",
+    title: b.status === "approved" ? "REMINDER APPOINTMENT" : "YOUR REQUEST UPDATED",
+    message: `Your appointment request with ${b.lecturerName} for ${b.date} at ${b.time} is ${b.status.toUpperCase()}.`,
+    // Pass the timestamp through
+    createdAt: b.statusUpdatedAt || b.createdAt 
+  })));
     }
   }, [bookings, profile]);
 
-  const register = async (email, password, name, role, idCode) => {
-    try {
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      const newUserData = { uid: cred.user.uid, email, name, role, idCode, createdAt: new Date().toISOString() };
-      await setDoc(doc(db, "users", cred.user.uid), newUserData);
-      setProfile(newUserData);
-      return { error: null };
-    } catch (err) {
-      return { error: err.message };
-    }
-  };
+  // Add 'department' to the parameters here
+const register = async (email, password, name, role, idCode, department) => {
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    // Include department in the object saved to Firestore
+    const newUserData = { 
+      uid: cred.user.uid, 
+      email, 
+      name, 
+      role, 
+      idCode, 
+      department: department || "Faculty Department", // Defaults to this if empty
+      createdAt: new Date().toISOString() 
+    };
+    await setDoc(doc(db, "users", cred.user.uid), newUserData);
+    setProfile(newUserData);
+    return { error: null };
+  } catch (err) {
+    return { error: err.message };
+  }
+};
 
   const login = async (email, password) => {
     try {
@@ -129,7 +142,12 @@ export function AuthProvider({ children }) {
   };
 
   const handleRequest = async (bookingId, slotId, decision) => {
-    await updateDoc(doc(db, "bookings", bookingId), { status: decision });
+    // Add statusUpdatedAt here
+    await updateDoc(doc(db, "bookings", bookingId), { 
+      status: decision,
+      statusUpdatedAt: new Date().toISOString() 
+    });
+    
     if (decision === "declined") {
       await updateDoc(doc(db, "slots", slotId), { isBooked: false });
     }
