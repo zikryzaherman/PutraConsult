@@ -66,12 +66,15 @@ export function AuthProvider({ children }) {
       })));
     } else if (profile.role === "student") {
       const reviewed = bookings.filter(b => b.studentId === profile.uid);
-      setNotifications(reviewed.map(b => ({
-        id: b.id,
-        type: "status",
-        title: b.status === "approved" ? "REMINDER APPOINTMENT" : "YOUR REQUEST UPDATED",
-        message: `Your appointment request with ${b.lecturerName} for ${b.date} at ${b.time} is ${b.status.toUpperCase()}.`
-      })));
+      // Inside your useEffect for notifications...
+  setNotifications(reviewed.map(b => ({
+    id: b.id,
+    type: "status",
+    title: b.status === "approved" ? "REMINDER APPOINTMENT" : "YOUR REQUEST UPDATED",
+    message: `Your appointment request with ${b.lecturerName} for ${b.date} at ${b.time} is ${b.status.toUpperCase()}.`,
+    // Pass the timestamp through
+    createdAt: b.statusUpdatedAt || b.createdAt 
+  })));
     }
   }, [bookings, profile]);
 
@@ -139,7 +142,12 @@ const register = async (email, password, name, role, idCode, department) => {
   };
 
   const handleRequest = async (bookingId, slotId, decision) => {
-    await updateDoc(doc(db, "bookings", bookingId), { status: decision });
+    // Add statusUpdatedAt here
+    await updateDoc(doc(db, "bookings", bookingId), { 
+      status: decision,
+      statusUpdatedAt: new Date().toISOString() 
+    });
+    
     if (decision === "declined") {
       await updateDoc(doc(db, "slots", slotId), { isBooked: false });
     }
