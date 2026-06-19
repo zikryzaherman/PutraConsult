@@ -1,136 +1,270 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import Navbar from "../components/Navbar";
-import Sidebar from "../components/Sidebar";
 
 export default function DashboardLayout({ children }) {
-  const { profile, logout, notifications, handleRequest } = useAuth();
-  const [showNotifModal, setShowNotifModal] = useState(false);
-  const [focusedNotif, setFocusedNotif] = useState(null);
+  const { profile, logout, notifications } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // UI States
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  
+  // Initialize readIds from LocalStorage so it survives page changes
+  const [readIds, setReadIds] = useState(() => {
+    const saved = localStorage.getItem("putraConsult_readNotifs");
+    return saved ? new Set(JSON.parse(saved)) : new Set();
+  });
+
+  // Sync to LocalStorage automatically whenever readIds changes
+  useEffect(() => {
+    localStorage.setItem("putraConsult_readNotifs", JSON.stringify(Array.from(readIds)));
+  }, [readIds]);
+  
+  const isLecturer = profile?.role === "lecturer";
+
+  // Calculate unread notifications based on our local tracker
+  const unreadNotifications = (notifications || []).filter(n => !readIds.has(n.id));
+  const unreadCount = unreadNotifications.length;
+
+  // Dynamically set navigation links based on user role
+  const navLinks = isLecturer 
+    ? [
+        { path: "/lecturer/availability", label: "Manage Availability", icon: "📅" },
+        { path: "/lecturer/requests", label: "Manage Requests", icon: "📬" }
+      ]
+    : [
+        { path: "/student/find", label: "Find & Book Lecturer", icon: "🔍" },
+        { path: "/student/status", label: "My Requests", icon: "📋" }
+      ];
+
+  // --- Handlers ---
+  const handleMarkAllRead = () => {
+    // Add all current notification IDs to the "read" Set
+    const allIds = new Set(notifications.map(n => n.id));
+    setReadIds(allIds);
+  };
+
+  const handleViewClick = (notif) => {
+    // 1. Mark this specific notification as read
+    setReadIds(prev => new Set(prev).add(notif.id));
+    
+    // 2. Close the drawer
+    setIsNotifOpen(false);
+    
+    // 3. Route to the correct destination
+    if (isLecturer) {
+      navigate("/lecturer/requests");
+    } else {
+      navigate("/student/status");
+    }
+  };
+
+  // Helper to get the correct icon based on notification type
+  const getNotifIcon = (notif) => {
+    if (notif.title?.includes("APPROVED") || notif.title?.includes("REMINDER")) {
+      return (
+        <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0 border border-emerald-100">
+          <svg className="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+        </div>
+      );
+    }
+    return (
+      <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center shrink-0 border border-orange-100">
+        <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+      </div>
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-800 font-sans antialiased selection:bg-red-500/10 selection:text-red-800 flex flex-col">
-      {/* GLOBAL NAVBAR COMES FROM COMPONENTS */}
-      <Navbar 
-        profile={profile} 
-        notifications={notifications} 
-        onNotificationClick={() => setShowNotifModal(true)} 
-        onLogout={logout} 
-      />
+    <div className="flex flex-col h-screen w-full bg-slate-50 overflow-hidden font-sans relative">
+      
+      {/* --- TOP NAVBAR --- */}
+      <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-10">
+        
+        {/* Left: Brand */}
+        <div className="flex items-center gap-4">
+          <div className="w-8 h-8 bg-red-900 text-white rounded flex items-center justify-center font-bold text-lg">
+            P
+          </div>
+          <div>
+            <h1 className="font-black text-slate-900 leading-none tracking-tight text-lg">PutraConsult</h1>
+          </div>
+        </div>
 
-      {/* TWO COLUMN MAIN CONTENT BLOCK */}
-      <div className="flex-1 flex flex-col md:flex-row max-w-7xl w-full mx-auto">
-        {/* DYNAMIC SIDEBAR COMES FROM COMPONENTS */}
-        <Sidebar profile={profile} />
+        {/* Right: User Profile & Actions */}
+        <div className="flex items-center gap-6">
+          
+          {/* Notification Bell Button */}
+          <button 
+            onClick={() => setIsNotifOpen(true)}
+            className="relative p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-50 rounded-full transition-colors focus:outline-none cursor-pointer"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            {/* Dynamic Unread Red Dot Indicator */}
+            {unreadCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-600 border-2 border-white rounded-full animate-pulse"></span>
+            )}
+          </button>
+          
+          <div className="w-px h-6 bg-slate-200"></div>
 
-        {/* WORKSPACE APP ROUTE PANEL */}
-        <main className="flex-1 p-8 animate-fade-in overflow-y-auto">
+          {/* Profile Dropdown Area */}
+          <div className="flex items-center gap-4">
+            <div className="text-right hidden sm:block">
+              <h3 className="font-bold text-slate-900 text-sm leading-none mb-1">
+                {profile?.name || "Loading..."}
+              </h3>
+              <span className="text-[10px] text-slate-400 lowercase font-medium">
+                {profile?.role || "user"}
+              </span>
+            </div>
+            
+            <div className="w-10 h-10 bg-red-50 text-red-900 rounded-full flex items-center justify-center font-bold">
+              {profile?.name ? profile.name.charAt(0).toUpperCase() : "U"}
+            </div>
+
+            <button 
+              onClick={logout}
+              className="text-slate-400 hover:text-slate-800 transition-colors ml-2 cursor-pointer"
+              title="Logout"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* --- BOTTOM ROW: SIDEBAR + MAIN CONTENT --- */}
+      <div className="flex flex-1 overflow-hidden">
+        
+        {/* LEFT SIDEBAR */}
+        <aside className="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0">
+          <div className="p-6">
+            <nav className="flex flex-col gap-2 mt-4">
+              {navLinks.map((link) => {
+                const isActive = location.pathname.includes(link.path);
+                return (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all ${
+                      isActive 
+                        ? "text-red-900 bg-red-50" 
+                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                    }`}
+                  >
+                    <span>{link.icon}</span>
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+        </aside>
+
+        {/* RIGHT MAIN CONTENT AREA */}
+        <main className="flex-1 overflow-y-auto bg-slate-50 relative">
           {children}
         </main>
+        
       </div>
 
-      {/* MODERN GLASS NOTIFICATION DRAWER OVERLAY */}
-      {showNotifModal && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex justify-end z-50 transition-opacity duration-300">
-          <div className="w-full max-w-md bg-white h-full flex flex-col p-6 shadow-2xl transition-transform duration-300 transform translate-x-0">
-            <div className="flex justify-between items-center border-b border-slate-100 pb-4 mb-5">
-              <div>
-                <h3 className="font-extrabold text-xl text-slate-900">Notifications</h3>
-                <p className="text-xs font-mono tracking-wider text-slate-400 uppercase mt-0.5">Live Update Feed</p>
-              </div>
-              <button onClick={() => setShowNotifModal(false)} className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg p-1.5 text-sm transition-all">✕</button>
-            </div>
+      {/* ========================================= */}
+      {/* --- NOTIFICATION SLIDE-OUT DRAWER --- */}
+      {/* ========================================= */}
 
-            <div className="space-y-3 flex-1 overflow-y-auto pr-1">
-              {notifications.length === 0 ? (
-                <div className="text-center text-slate-400 py-16 flex flex-col items-center justify-center space-y-2">
-                  <span className="text-3xl">☕</span>
-                  <p className="text-sm font-medium italic">Everything is up to date.</p>
-                </div>
-              ) : (
-                notifications.map(n => (
-                  <div key={n.id} className="bg-slate-50 border border-slate-100 rounded-xl p-4 hover:border-slate-200 hover:bg-slate-100/50 transition-all duration-200 group flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="h-10 w-10 bg-white rounded-xl shadow-xs border border-slate-200/60 flex items-center justify-center text-lg">
-                        {n.type === "incoming" ? "📥" : "📅"}
-                      </div>
-                      <div>
-                        <span className="text-[10px] bg-slate-200 text-slate-700 font-bold px-2 py-0.5 rounded-md font-mono uppercase tracking-wide inline-block">{n.title}</span>
-                        {n.type === "incoming" && <p className="text-xs font-bold text-slate-800 mt-1">{n.studentName}</p>}
-                        {n.type === "status" && <p className="text-xs text-slate-500 mt-1 line-clamp-1">{n.message}</p>}
-                      </div>
-                    </div>
-                    <button onClick={() => { setFocusedNotif(n); setShowNotifModal(false); }} className="bg-white hover:bg-red-800 hover:text-white border border-slate-200 hover:border-red-800 text-slate-700 font-semibold text-xs px-3 py-1.5 rounded-lg transition-all shadow-xs shrink-0 cursor-pointer">
-                      View
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
+      {/* Dark Overlay Backdrop */}
+      {isNotifOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40 transition-opacity"
+          onClick={() => setIsNotifOpen(false)}
+        ></div>
       )}
 
-      {/* ACTION BLOCK MODAL CONTAINER */}
-      {focusedNotif && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity duration-200">
-          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl border border-slate-100 transform transition-all scale-100">
-            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-              <span className="text-xs font-mono font-extrabold tracking-wider text-red-700 bg-red-50 border border-red-100 px-2.5 py-1 rounded-full uppercase">
-                {focusedNotif.title}
-              </span>
-              <button onClick={() => setFocusedNotif(null)} className="text-slate-400 hover:text-slate-600 text-sm p-1">✕</button>
+      {/* Drawer Panel */}
+      <div className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isNotifOpen ? "translate-x-0" : "translate-x-full"}`}>
+        
+        {/* Drawer Header */}
+        <div className="p-6 border-b border-slate-100 flex items-start justify-between bg-white">
+          <div className="flex gap-3 items-center">
+            <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+            <div>
+              <h2 className="font-bold text-slate-900 text-lg leading-tight">Notifications</h2>
+              <p className="text-sm text-slate-500">{profile?.name}</p>
             </div>
-            <div className="p-6 space-y-5">
-              <div className="flex items-center space-x-4">
-                <div className="h-14 w-14 bg-gradient-to-tr from-slate-100 to-slate-50 rounded-full border border-slate-200 flex items-center justify-center text-slate-600 text-xl font-bold shadow-xs">
-                  👤
-                </div>
-                <div>
-                  {focusedNotif.type === "incoming" ? (
-                    <>
-                      <h4 className="text-base font-extrabold text-slate-900">{focusedNotif.studentName}</h4>
-                      <p className="text-xs font-mono text-slate-400 mt-0.5">Matrics ID: <span className="text-slate-700 font-bold">{focusedNotif.studentIdCode}</span></p>
-                    </>
-                  ) : (
-                    <p className="text-sm text-slate-600 font-medium leading-relaxed">{focusedNotif.message}</p>
+          </div>
+          <button 
+            onClick={() => setIsNotifOpen(false)}
+            className="text-slate-400 hover:text-slate-800 p-1 transition-colors cursor-pointer"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        {/* Sub-header (Unread Count & Mark Read) */}
+        <div className="px-6 py-4 flex justify-between items-center bg-white z-10">
+          <span className="text-sm text-slate-600 font-medium">
+            {unreadCount} unread
+          </span>
+          <button 
+            onClick={handleMarkAllRead}
+            disabled={unreadCount === 0}
+            className="text-sm text-red-900 hover:text-red-700 font-bold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Mark all as read
+          </button>
+        </div>
+
+        {/* Notification List Area */}
+        <div className="p-6 pt-2 flex-1 overflow-y-auto flex flex-col gap-4 bg-slate-50/50">
+          
+          {(!notifications || notifications.length === 0) ? (
+            <div className="flex flex-col items-center justify-center h-full text-center opacity-60">
+              <span className="text-4xl mb-4">📭</span>
+              <p className="text-slate-500 font-medium">No new notifications</p>
+            </div>
+          ) : (
+            notifications.map((notif, index) => {
+              const isUnread = !readIds.has(notif.id);
+
+              return (
+                <div key={notif.id || index} className={`bg-white border border-slate-200 rounded-2xl p-5 shadow-sm relative group hover:border-red-200 transition-colors ${!isUnread ? "opacity-75 bg-slate-50/50" : ""}`}>
+                  
+                  {/* Dynamic Red Unread Dot on Card */}
+                  {isUnread && (
+                    <div className="absolute top-5 right-5 w-2 h-2 bg-red-600 rounded-full"></div>
                   )}
+
+                  <div className="flex items-start gap-4 pr-4">
+                    {getNotifIcon(notif)}
+                    
+                    <div className="flex-1">
+                      <p className={`text-sm leading-snug mb-1 ${isUnread ? "font-bold text-slate-800" : "font-medium text-slate-600"}`}>
+                        {notif.message || notif.title}
+                      </p>
+                      <span className="text-xs text-slate-400 block mb-3">
+                        just now
+                      </span>
+                      
+                      <button 
+                        onClick={() => handleViewClick(notif)}
+                        className="bg-red-50 text-red-900 hover:bg-red-100 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-colors cursor-pointer"
+                      >
+                        View
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              );
+            })
+          )}
 
-              {focusedNotif.type === "incoming" && (
-                <>
-                  <div className="grid grid-cols-2 gap-3 bg-slate-50 border border-slate-100 p-3 rounded-xl text-xs font-medium text-slate-600">
-                    <div>Date: <span className="text-slate-900 font-bold block mt-0.5">{focusedNotif.date}</span></div>
-                    <div>Time Window: <span className="text-slate-900 font-bold block mt-0.5">{focusedNotif.time}</span></div>
-                  </div>
-                  <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl text-xs text-slate-700">
-                    <span className="text-[10px] font-mono font-bold text-slate-400 block mb-1 uppercase tracking-wider">Booking Details:</span>
-                    <p className="italic font-medium text-slate-600">"{focusedNotif.message}"</p>
-                  </div>
-                </>
-              )}
-
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                {focusedNotif.type === "incoming" ? (
-                  <>
-                    <button onClick={async () => { await handleRequest(focusedNotif.id, focusedNotif.slotId, "declined"); setFocusedNotif(null); }} className="bg-slate-100 hover:bg-red-50 hover:text-red-700 text-slate-700 font-bold py-2.5 rounded-xl text-xs tracking-wide border border-slate-200/60 hover:border-red-200/60 transition-all cursor-pointer">
-                      DECLINE
-                    </button>
-                    <button onClick={async () => { await handleRequest(focusedNotif.id, focusedNotif.slotId, "approved"); setFocusedNotif(null); }} className="bg-red-800 hover:bg-red-900 text-white font-bold py-2.5 rounded-xl text-xs tracking-wide shadow-md shadow-red-800/10 transition-all cursor-pointer">
-                      ACCEPT/ADD
-                    </button>
-                  </>
-                ) : (
-                  <button onClick={() => setFocusedNotif(null)} className="col-span-2 bg-slate-900 hover:bg-black text-white font-bold py-2.5 rounded-xl text-xs tracking-wide transition-all cursor-pointer">
-                    DISMISS
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
         </div>
-      )}
+      </div>
+
     </div>
   );
 }
