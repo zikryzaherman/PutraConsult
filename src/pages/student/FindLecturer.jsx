@@ -155,85 +155,119 @@ export default function FindLecturer() {
     </div>
   );
 
-  const renderStep2 = () => (
-    <div className="animate-fade-in">
-      <button onClick={() => setStep(1)} className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors mb-6">
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-        Back to Lecturers
-      </button>
+  const renderStep2 = () => {
+    // --- Determine "Today" at midnight for accurate comparison ---
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-      <div className="mb-10">
-        <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">Choose Preferred Date</h1>
-        <p className="text-slate-500 text-lg">
-          Consultation with <span className="text-red-900 font-bold">{selectedLecturer?.name}</span>
-        </p>
-      </div>
+    // Check if the currently viewed month is the current real-world month
+    const isCurrentMonth = currentViewMonth.getMonth() === today.getMonth() && currentViewMonth.getFullYear() === today.getFullYear();
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* LEFT: CALENDAR */}
-        <div className="lg:col-span-4 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2 text-lg font-bold text-slate-900">
-              {monthNames[currentViewMonth.getMonth()]} {currentViewMonth.getFullYear()}
-            </div>
-            <div className="flex gap-4">
-              <button onClick={prevMonth} className="text-slate-400 hover:text-slate-800 transition-colors"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg></button>
-              <button onClick={nextMonth} className="text-slate-400 hover:text-slate-800 transition-colors"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg></button>
-            </div>
-          </div>
+    return (
+      <div className="animate-fade-in">
+        <button onClick={() => setStep(1)} className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors mb-6">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+          Back to Lecturers
+        </button>
 
-          <div className="grid grid-cols-7 text-center mb-4">
-            {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (<div key={day} className="text-xs font-medium text-slate-400">{day}</div>))}
-          </div>
-
-          <div className="grid grid-cols-7 text-center gap-y-3">
-            {allCalendarCells.map((dayNum, idx) => {
-              if (!dayNum) return <div key={`blank-${idx}`} className="w-10 h-10"></div>;
-              const cellDate = new Date(currentViewMonth.getFullYear(), currentViewMonth.getMonth(), dayNum);
-              const cellDateStr = getLocalDateString(cellDate);
-              const isSelected = selectedDate === cellDateStr;
-              const hasAvailableSlots = dateHasSlots(cellDateStr);
-              return (
-                <div key={dayNum} className="flex justify-center items-center relative">
-                  <button onClick={() => setSelectedDate(cellDateStr)} className={`w-10 h-10 flex items-center justify-center rounded-full text-sm transition-colors ${isSelected ? "bg-red-900 text-white font-bold" : "text-slate-700 hover:bg-slate-100"}`}>
-                    <span>{dayNum}</span>
-                  </button>
-                  {hasAvailableSlots && !isSelected && (<span className="w-1.5 h-1.5 bg-red-600 rounded-full absolute bottom-0.5"></span>)}
-                </div>
-              );
-            })}
-          </div>
+        <div className="mb-10">
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">Choose Preferred Date</h1>
+          <p className="text-slate-500 text-lg">
+            Consultation with <span className="text-red-900 font-bold">{selectedLecturer?.name}</span>
+          </p>
         </div>
 
-        {/* RIGHT: TIME SLOTS */}
-        <div className="lg:col-span-8 flex flex-col h-full">
-          <div className="flex items-center gap-2 mb-4">
-            <h3 className="text-lg font-bold text-slate-900">Available Time on {formatLongDate(selectedDate)}</h3>
-          </div>
-
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex-1">
-            {availableSlotsOnDate.length === 0 ? (
-              <p className="text-slate-500 text-center py-10">No available slots on this date.</p>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {availableSlotsOnDate.map(slot => (
-                  <button key={slot.id} onClick={() => setSelectedSlot(slot)} className={`p-4 rounded-xl border text-left transition-all ${selectedSlot?.id === slot.id ? "bg-red-50 border-red-900 text-red-900 ring-1 ring-red-900" : "bg-white border-slate-200"}`}>
-                    <div className="font-bold text-base">{slot.time}</div>
-                  </button>
-                ))}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* LEFT: CALENDAR */}
+          <div className="lg:col-span-4 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2 text-lg font-bold text-slate-900">
+                {monthNames[currentViewMonth.getMonth()]} {currentViewMonth.getFullYear()}
               </div>
-            )}
+              <div className="flex gap-4">
+                {/* Disable prev button if looking at the current month */}
+                <button 
+                  onClick={prevMonth} 
+                  disabled={isCurrentMonth}
+                  className={`transition-colors ${isCurrentMonth ? "text-slate-200 cursor-not-allowed" : "text-slate-400 hover:text-slate-800"}`}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
+                </button>
+                <button onClick={nextMonth} className="text-slate-400 hover:text-slate-800 transition-colors">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-7 text-center mb-4">
+              {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (<div key={day} className="text-xs font-medium text-slate-400">{day}</div>))}
+            </div>
+
+            <div className="grid grid-cols-7 text-center gap-y-3">
+              {allCalendarCells.map((dayNum, idx) => {
+                if (!dayNum) return <div key={`blank-${idx}`} className="w-10 h-10"></div>;
+                
+                const cellDate = new Date(currentViewMonth.getFullYear(), currentViewMonth.getMonth(), dayNum);
+                const cellDateStr = getLocalDateString(cellDate);
+                const isSelected = selectedDate === cellDateStr;
+                const hasAvailableSlots = dateHasSlots(cellDateStr);
+                
+                // --- Check if the date has already passed ---
+                const isPastDate = cellDate < today;
+
+                return (
+                  <div key={dayNum} className="flex justify-center items-center relative">
+                    <button 
+                      onClick={() => setSelectedDate(cellDateStr)} 
+                      disabled={isPastDate}
+                      className={`w-10 h-10 flex items-center justify-center rounded-full text-sm transition-colors ${
+                        isPastDate ? "text-slate-300 cursor-not-allowed opacity-50" : // Grey out past dates
+                        isSelected ? "bg-red-900 text-white font-bold" : 
+                        "text-slate-700 hover:bg-slate-100 cursor-pointer"
+                      }`}
+                    >
+                      <span>{dayNum}</span>
+                    </button>
+                    {/* Only show the red dot if there are slots AND the date is not in the past */}
+                    {hasAvailableSlots && !isSelected && !isPastDate && (
+                      <span className="w-1.5 h-1.5 bg-red-600 rounded-full absolute bottom-0.5"></span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="mt-8 flex justify-end">
-            <button disabled={!selectedSlot} onClick={() => setStep(3)} className={`px-10 py-3.5 rounded-xl font-bold transition-all uppercase ${selectedSlot ? "bg-[#7B1822] text-white" : "bg-slate-200 text-slate-400"}`}>
-              Continue
-            </button>
+          {/* RIGHT: TIME SLOTS */}
+          <div className="lg:col-span-8 flex flex-col h-full">
+            <div className="flex items-center gap-2 mb-4">
+              <h3 className="text-lg font-bold text-slate-900">Available Time on {formatLongDate(selectedDate)}</h3>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex-1">
+              {availableSlotsOnDate.length === 0 ? (
+                <p className="text-slate-500 text-center py-10">No available slots on this date.</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {availableSlotsOnDate.map(slot => (
+                    <button key={slot.id} onClick={() => setSelectedSlot(slot)} className={`p-4 rounded-xl border text-left transition-all ${selectedSlot?.id === slot.id ? "bg-red-50 border-red-900 text-red-900 ring-1 ring-red-900" : "bg-white border-slate-200"}`}>
+                      <div className="font-bold text-base">{slot.time}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="mt-8 flex justify-end">
+              <button disabled={!selectedSlot} onClick={() => setStep(3)} className={`px-10 py-3.5 rounded-xl font-bold transition-all uppercase ${selectedSlot ? "bg-[#7B1822] text-white" : "bg-slate-200 text-slate-400"}`}>
+                Continue
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderStep3 = () => (
     <div className="animate-fade-in max-w-3xl mx-auto">
