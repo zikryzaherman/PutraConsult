@@ -77,7 +77,10 @@ export default function DashboardLayout({ children }) {
       {/* --- TOP NAVBAR --- */}
       <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-10">
         <div className="flex items-center gap-4">
-          <div className="w-8 h-8 bg-red-900 text-white rounded flex items-center justify-center font-bold text-lg">P</div>
+          {/* UPDATED: Top Left Brand Logo (Transparent/White) */}
+          <div className="w-8 h-8 flex items-center justify-center text-3xl filter drop-shadow-sm">
+            🎓
+          </div>
           <div><h1 className="font-black text-slate-900 leading-none tracking-tight text-lg">PutraConsult</h1></div>
         </div>
 
@@ -101,9 +104,12 @@ export default function DashboardLayout({ children }) {
               <h3 className="font-bold text-slate-900 text-sm leading-none mb-1">{profile?.name || "Loading..."}</h3>
               <span className="text-[10px] text-slate-400 lowercase font-medium">{profile?.role || "user"}</span>
             </div>
-            <div className="w-10 h-10 bg-red-50 text-red-900 rounded-full flex items-center justify-center font-bold">
-              {profile?.name ? profile.name.charAt(0).toUpperCase() : "U"}
+            
+            {/* UPDATED: Dynamic Profile Avatar */}
+            <div className="w-10 h-10 bg-red-50 text-red-900 rounded-full flex items-center justify-center text-xl shadow-sm border border-red-100">
+              {isLecturer ? "👨‍🏫" : "🎓"}
             </div>
+            
             <button onClick={logout} className="text-slate-400 hover:text-slate-800 transition-colors ml-2 cursor-pointer" title="Logout">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
             </button>
@@ -138,7 +144,8 @@ export default function DashboardLayout({ children }) {
       <div className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isNotifOpen ? "translate-x-0" : "translate-x-full"}`}>
         <div className="p-6 border-b border-slate-100 flex items-start justify-between bg-white">
           <div className="flex gap-3 items-center">
-            <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+            {/* Drawer Icon */}
+            <span className="text-2xl filter drop-shadow-sm">🎓</span>
             <div><h2 className="font-bold text-slate-900 text-lg leading-tight">Notifications</h2><p className="text-sm text-slate-500">{profile?.name}</p></div>
           </div>
           <button onClick={() => setIsNotifOpen(false)} className="text-slate-400 hover:text-slate-800 p-1 transition-colors cursor-pointer"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
