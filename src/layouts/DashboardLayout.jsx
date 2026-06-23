@@ -102,7 +102,7 @@ export default function DashboardLayout({ children }) {
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
               <h3 className="font-bold text-slate-900 text-sm leading-none mb-1">{profile?.name || "Loading..."}</h3>
-              <span className="text-[10px] text-slate-400 lowercase font-medium">{profile?.role || "user"}</span>
+              <span className="text-[10px] text-slate-400 uppercase tracking-wide font-medium">{profile?.role || "user"}</span>
             </div>
             
             {/* UPDATED: Dynamic Profile Avatar */}

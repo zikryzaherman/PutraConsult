@@ -31,23 +31,45 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    if (!currentUser) {
-      setAvailability([]); setBookings([]); setNotifications([]); return;
-    }
-    const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
-      setUsers(snapshot.docs.map(d => d.data()));
-    });
-    const unsubSlots = onSnapshot(
-      query(collection(db, "slots"), where("isBooked", "==", false)), 
-      (snapshot) => {
-        setAvailability(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-      }
-    );
-    const unsubBookings = onSnapshot(collection(db, "bookings"), (snapshot) => {
-      setBookings(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
-    return () => { unsubUsers(); unsubSlots(); unsubBookings(); };
-  }, [currentUser]);
+  if (!currentUser || !profile) {
+    setUsers([]); setAvailability([]); setBookings([]); setNotifications([]);
+    return;
+  }
+
+  const isLecturer = profile.role === "lecturer";
+
+  // Lecturers never read `users` from context — skip the subscription entirely.
+  // Students only need the lecturer directory to search/browse, not every student.
+  const unsubUsers = isLecturer
+    ? () => {}
+    : onSnapshot(
+        query(collection(db, "users"), where("role", "==", "lecturer")),
+        (snapshot) => setUsers(snapshot.docs.map((d) => d.data()))
+      );
+
+  // Slots stay global (students need to see every lecturer's open hours),
+  // but it's already filtered to isBooked === false, so it's the small subset.
+  const unsubSlots = onSnapshot(
+    query(collection(db, "slots"), where("isBooked", "==", false)),
+    (snapshot) => setAvailability(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })))
+  );
+
+  // A student only ever needs their own bookings; a lecturer only needs
+  // the ones addressed to them — never the whole bookings collection.
+  const unsubBookings = onSnapshot(
+    query(
+      collection(db, "bookings"),
+      where(isLecturer ? "lecturerId" : "studentId", "==", profile.uid)
+    ),
+    (snapshot) => setBookings(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })))
+  );
+
+  return () => {
+    unsubUsers();
+    unsubSlots();
+    unsubBookings();
+  };
+}, [currentUser, profile]);
 
   useEffect(() => {
     if (!profile) return;
