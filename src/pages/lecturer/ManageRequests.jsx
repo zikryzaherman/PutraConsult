@@ -1,22 +1,23 @@
 import React from "react";
 import { useAuth } from "../../context/AuthContext";
 import DashboardLayout from "../../layouts/DashboardLayout";
+import Badge from "../../components/ui/Badge";
 
 // Utility to format date into "Wednesday, Jun 17, 2026"
 const formatLongDate = (dateString) => {
   if (!dateString) return "";
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    month: 'short', 
-    day: 'numeric', 
-    year: 'numeric' 
+  return date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
   });
 };
 
 export default function ManageRequests() {
   const { bookings, profile, handleRequest } = useAuth();
-  
+
   // Filter for this lecturer and sort newest first
   const myRequests = (bookings || [])
     .filter(b => b.lecturerId === profile?.uid)
@@ -28,15 +29,15 @@ export default function ManageRequests() {
   return (
     <DashboardLayout>
       <div className="bg-slate-50 min-h-full w-full p-8 font-sans animate-fade-in">
-        
+
         {/* --- PAGE HEADER --- */}
-        <div className="mb-10">
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">Manage Requests</h1>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-1">Manage Requests</h1>
           <p className="text-slate-500 font-medium">Review and respond to student consultation requests</p>
         </div>
 
         <div className="max-w-5xl flex flex-col gap-8">
-          
+
           {/* --- PENDING REQUESTS SECTION --- */}
           <div>
             <div className="flex items-center gap-3 mb-4">
@@ -48,31 +49,28 @@ export default function ManageRequests() {
 
             {pendingRequests.length === 0 ? (
               <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
-                <span className="text-4xl mb-4 block">☕</span>
-                <h3 className="text-lg font-bold text-slate-700">All caught up!</h3>
+                <span className="text-4xl mb-3 block">☕</span>
+                <h3 className="text-lg font-bold text-slate-700 mb-1">All caught up!</h3>
                 <p className="text-slate-500">You have no pending requests to review.</p>
               </div>
             ) : (
               <div className="flex flex-col gap-6">
                 {pendingRequests.map(req => (
                   <div key={req.id} className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm">
-                    
+
                     {/* Top Row: User Info & Action Buttons */}
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6">
-                      
+
                       <div className="flex flex-col gap-3">
-                        {/* Status Badge */}
-                        <span className="bg-amber-100 text-amber-800 text-xs font-black tracking-wider uppercase px-3 py-1 rounded-md w-fit">
-                          New Booking Request
-                        </span>
-                        
+                        <Badge variant="new">New Booking Request</Badge>
+
                         {/* Profile Info */}
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                           </div>
                           <div>
-                            <h3 className="font-bold text-lg text-slate-900 leading-tight">
+                            <h3 className="font-bold text-lg text-slate-900 leading-tight mb-1">
                               {req.studentName}
                             </h3>
                             <span className="text-sm text-slate-400 font-medium uppercase">
@@ -84,15 +82,15 @@ export default function ManageRequests() {
 
                       {/* Action Buttons */}
                       <div className="flex items-center gap-3 w-full md:w-auto">
-                        <button 
-                          onClick={() => handleRequest(req.id, req.slotId, "approved")} 
+                        <button
+                          onClick={() => handleRequest(req.id, req.slotId, "approved")}
                           className="flex-1 md:flex-none bg-[#10B981] hover:bg-emerald-600 text-white px-6 py-2.5 rounded-full font-bold transition-colors flex items-center justify-center gap-2 shadow-sm"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
                           ACCEPT
                         </button>
-                        <button 
-                          onClick={() => handleRequest(req.id, req.slotId, "declined")} 
+                        <button
+                          onClick={() => handleRequest(req.id, req.slotId, "declined")}
                           className="flex-1 md:flex-none bg-[#EF4444] hover:bg-red-600 text-white px-6 py-2.5 rounded-full font-bold transition-colors flex items-center justify-center gap-2 shadow-sm"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -102,14 +100,14 @@ export default function ManageRequests() {
 
                     </div>
 
-                    {/* Middle Row: Date & Time Box */}
-                    <div className="bg-slate-50 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-12 mb-4">
+                    {/* Middle Row: Date & Time Box — now matches ViewBookingStatus exactly */}
+                    <div className="bg-slate-50 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-10 mb-4">
                       <div className="flex items-center gap-3 text-slate-700 font-medium">
-                        <svg className="w-5 h-5 text-red-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        <svg className="w-5 h-5 text-red-900 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                         {formatLongDate(req.date)}
                       </div>
                       <div className="flex items-center gap-3 text-slate-700 font-medium">
-                        <svg className="w-5 h-5 text-red-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <svg className="w-5 h-5 text-red-900 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         {req.time}
                       </div>
                     </div>
@@ -131,17 +129,13 @@ export default function ManageRequests() {
 
           {/* --- HISTORY SECTION (Processed Requests) --- */}
           {processedRequests.length > 0 && (
-            <div className="mt-8">
-              <h2 className="text-lg font-bold text-slate-500 mb-4 uppercase tracking-wider text-sm">Processed History</h2>
-              <div className="flex flex-col gap-4 opacity-75">
+            <div>
+              <h2 className="text-sm font-bold text-slate-500 mb-4 uppercase tracking-wider">Processed History</h2>
+              <div className="flex flex-col gap-3 opacity-75">
                 {processedRequests.map(req => (
                   <div key={req.id} className="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-md ${
-                        req.status === "approved" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
-                      }`}>
-                        {req.status}
-                      </span>
+                    <div className="flex items-center gap-3">
+                      <Badge status={req.status} />
                       <span className="font-bold text-slate-800">{req.studentName}</span>
                       <span className="text-slate-400 text-sm hidden sm:block">({req.date} @ {req.time})</span>
                     </div>
